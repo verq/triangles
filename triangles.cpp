@@ -59,6 +59,7 @@ int main() {
 
 	glm::mat4 Model = glm::mat4(1.0f);
 	glm::mat4 MVP = Model; 
+	glm::mat4 VB = Model;
 
 	static const GLfloat g_vertex_buffer_data[] = { 
 		-1.0f, -1.0f, 0.0f,
