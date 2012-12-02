@@ -21,6 +21,16 @@ using namespace std;
 
 using namespace glm;
 
+static const GLfloat triangles[] = { 
+	0.4f, -0.1f, 0.0f,
+	0.0f, -0.9f, 0.0f,
+	-0.4f, -0.1f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 1.0f
+};
+
+double scale_ = 1.0;
 
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
 
@@ -34,7 +44,7 @@ int main() {
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
 
-	if( !glfwOpenWindow( 800, 600, 0,0,0,0, 32,0, GLFW_WINDOW)) {
+	if( !glfwOpenWindow(800, 600, 0,0,0,0, 32,0, GLFW_WINDOW)) {
 		fprintf(stderr, "Failed to open GLFW window\n");
 		glfwTerminate();
 		return -1;
@@ -48,114 +58,48 @@ int main() {
 	glfwSetWindowTitle( "Triangles" );
 	glfwEnable( GLFW_STICKY_KEYS );
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	GLuint programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 	
-
-	GLuint vertexPosition_modelspaceID = glGetAttribLocation(programID, "vertexPosition_modelspace");
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	GLuint vertexColorID = glGetAttribLocation(programID, "vertexColor");
-	GLuint vertexBaricentricID = glGetAttribLocation(programID, "VB");
-
-	glm::mat4 Model = glm::mat4(1.0f);
-	glm::mat4 MVP = Model; 
-	glm::mat4 VB = Model;
-
-	static const GLfloat g_vertex_buffer_data[] = { 
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 0.0f,  1.0f, 0.0f,
-	};
-
-	static const GLfloat g_color_buffer_data[] = { 
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 0.0f,  1.0f, 0.0f,
-	};
-
-	static const GLfloat g_position_buffer_data[] = { 
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 0.0f,  1.0f, 0.0f,
-	};
+	GLuint triangleID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl");
 
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-	GLuint colorbuffer;
-	glGenBuffers(1, &colorbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-
-	GLuint positionbuffer;
-	glGenBuffers(1, &positionbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, positionbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_position_buffer_data), g_position_buffer_data, GL_STATIC_DRAW);
+	GLuint ratioID;
 
 	do {
-		glClear( GL_COLOR_BUFFER_BIT );
-		glUseProgram(programID);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glUseProgram(triangleID);
 
-		for (int i = 0; i < 9; i++) {
-			glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-			
-			glEnableVertexAttribArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-			glVertexAttribPointer(
-			vertexPosition_modelspaceID, // The attribute we want to configure
-				3,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				0,                  // stride
-				(void*)0            // array buffer offset
-			);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
 
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-			glVertexAttribPointer(
-				vertexColorID,               // The attribute we want to configure
-				3,                           // size
-				GL_FLOAT,                    // type
-				GL_FALSE,                    // normalized?
-				0,                           // stride
-				(void*)0                     // array buffer offset
-			);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)36);
 
-			glEnableVertexAttribArray(2);
-			glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-			glVertexAttribPointer(
-				vertexBaricentricID,               // The attribute we want to configure
-				3,                           // size
-				GL_FLOAT,                    // type
-				GL_FALSE,                    // normalized?
-				0,                           // stride
-				(void*)0                     // array buffer offset
-			);
-			glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
-		}
+		glBufferData(GL_ARRAY_BUFFER, sizeof(triangles), triangles, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+		ratioID = glGetUniformLocation(triangleID, "scale");
+		glProgramUniform1f(triangleID, ratioID, scale_);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
 
 		glfwSwapBuffers();
-	}
-	while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS &&
-		   glfwGetWindowParam( GLFW_OPENED ) );
-
+	} while (glfwGetKey(GLFW_KEY_ESC) != GLFW_PRESS && glfwGetWindowParam(GLFW_OPENED));
 
 	glfwTerminate();
 	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteBuffers(1, &colorbuffer);
-	glDeleteBuffers(1, &positionbuffer);
-	glDeleteProgram(programID);
+	glDeleteProgram(triangleID);
 
 	return 0;
 }
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path) {
+GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
