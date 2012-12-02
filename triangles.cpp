@@ -1,61 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
 #include <GL/glew.h>
 #include <GL/glfw.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include <stdio.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-using namespace std;
+#define NUMBER_OF_VERTEX 18
 
-#include <stdlib.h>
-#include <string.h>
+GLfloat triangles[NUMBER_OF_VERTEX];
 
-#include <GL/glew.h>
-
-using namespace glm;
-
-static const GLfloat triangles[] = { 
-	0.4f, -0.1f, 0.0f,
-	0.0f, -0.9f, 0.0f,
-	-0.4f, -0.1f, 0.0f,
-	1.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 0.0f,
-	0.0f, 0.0f, 1.0f
-};
-
-double scale_ = 1.0;
+double scale = 1.0;
 
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
+int openWindow();
+void init_triangle();
 
 int main() {
-	if( !glfwInit() ) {
-		fprintf( stderr, "Failed to initialize GLFW\n" );
-		return -1;
-	}
-
-	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
-
-	if( !glfwOpenWindow(800, 600, 0,0,0,0, 32,0, GLFW_WINDOW)) {
-		fprintf(stderr, "Failed to open GLFW window\n");
-		glfwTerminate();
-		return -1;
-	}
-
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "Failed to initialize GLEW\n");
-		return -1;
-	}
-
-	glfwSetWindowTitle( "Triangles" );
+	if (openWindow() == -1) return -1;
+	init_triangle();
+	
 	glfwEnable( GLFW_STICKY_KEYS );
 	
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
@@ -82,7 +52,7 @@ int main() {
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 
 		ratioID = glGetUniformLocation(triangleID, "scale");
-		glProgramUniform1f(triangleID, ratioID, scale_);
+		glProgramUniform1f(triangleID, ratioID, scale);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
@@ -96,6 +66,48 @@ int main() {
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteProgram(triangleID);
 
+	return 0;
+}
+
+void init_triangle() {
+	for (int i = 0; i < NUMBER_OF_VERTEX / 2; i++) {
+		if (i % 3 == 2) triangles[i] = 0.0f;
+	}
+	triangles[0] = 0.5f;
+	triangles[1] = -0.5f;
+	
+	triangles[3] = 0.5f; 
+	triangles[4] = 0.5f; 
+	
+	triangles[6] = -0.5f; 
+	triangles[7] = 0.5f;
+	
+	for (int i = NUMBER_OF_VERTEX / 2; i < NUMBER_OF_VERTEX; i++) {
+		if (i % 4 == 1) triangles[i] = 1.0f;
+		else triangles[i] = 0.0f;
+	}	
+}
+
+int openWindow() {
+	if (!glfwInit()) {
+		fprintf( stderr, "Failed to initialize GLFW\n" );
+		return -1;
+	}
+
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
+
+	if(!glfwOpenWindow(800, 600, 0,0,0,0, 32,0, GLFW_WINDOW)) {
+		fprintf(stderr, "Failed to open GLFW window\n");
+		glfwTerminate();
+		return -1;
+	}
+
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		return -1;
+	}
+	glfwSetWindowTitle("Triangles");
 	return 0;
 }
 
