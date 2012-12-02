@@ -14,48 +14,49 @@
 
 #define NUMBER_OF_VERTEX 18
 
-GLfloat triangles[NUMBER_OF_VERTEX];
+GLfloat first_triangle[NUMBER_OF_VERTEX];
+GLfloat second_triangle[NUMBER_OF_VERTEX];
 
 double scale = 1.0;
 
+
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
 int openWindow();
-void init_triangle();
+
+void init_first_triangle();
+void init_second_triangle();
+void draw(GLuint program, GLfloat* triangle, GLuint vertexbuffer);
+		
 
 int main() {
 	if (openWindow() == -1) return -1;
-	init_triangle();
+	
+	init_first_triangle();
+	init_second_triangle();
 	
 	glfwEnable( GLFW_STICKY_KEYS );
 	
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 	
-	GLuint triangleID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl");
-
+	GLuint first_triangleID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl");
+	GLuint second_triangleID = LoadShaders("VertexShader.glsl", "FragmentShader2.glsl");
+	
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 
-	GLuint ratioID;
-
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUseProgram(triangleID);
-
+		
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)36);
-
-		glBufferData(GL_ARRAY_BUFFER, sizeof(triangles), triangles, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-
-		ratioID = glGetUniformLocation(triangleID, "scale");
-		glProgramUniform1f(triangleID, ratioID, scale);
-
-		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
+		draw(first_triangleID, first_triangle, vertexbuffer);
+		draw(second_triangleID, second_triangle, vertexbuffer);
+
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 
@@ -64,27 +65,60 @@ int main() {
 
 	glfwTerminate();
 	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteProgram(triangleID);
+	glDeleteProgram(first_triangleID);
+	glDeleteProgram(second_triangleID);
 
 	return 0;
 }
 
-void init_triangle() {
+
+void draw(GLuint program, GLfloat* triangle, GLuint vertexbuffer) {
+		glUseProgram(program);
+		GLuint scaleID = glGetUniformLocation(program, "scale");
+		
+		glBufferData(GL_ARRAY_BUFFER, NUMBER_OF_VERTEX * sizeof(triangle), triangle, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+		glProgramUniform1f(program, scaleID, scale);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void init_first_triangle() {
 	for (int i = 0; i < NUMBER_OF_VERTEX / 2; i++) {
-		if (i % 3 == 2) triangles[i] = 0.0f;
+		if (i % 3 == 2) first_triangle[i] = 0.0f;
 	}
-	triangles[0] = 0.5f;
-	triangles[1] = -0.5f;
+	first_triangle[0] = 0.5f;
+	first_triangle[1] = -0.5f;
 	
-	triangles[3] = 0.5f; 
-	triangles[4] = 0.5f; 
+	first_triangle[3] = 0.5f; 
+	first_triangle[4] = 0.5f; 
 	
-	triangles[6] = -0.5f; 
-	triangles[7] = 0.5f;
+	first_triangle[6] = -0.5f; 
+	first_triangle[7] = 0.5f;
 	
 	for (int i = NUMBER_OF_VERTEX / 2; i < NUMBER_OF_VERTEX; i++) {
-		if (i % 4 == 1) triangles[i] = 1.0f;
-		else triangles[i] = 0.0f;
+		if (i % 4 == 1) first_triangle[i] = 1.0f;
+		else first_triangle[i] = 0.0f;
+	}	
+}
+
+void init_second_triangle() {
+	for (int i = 0; i < NUMBER_OF_VERTEX / 2; i++) {
+		if (i % 3 == 2) second_triangle[i] = 0.0f;
+	}
+	second_triangle[0] = 0.5f;
+	second_triangle[1] = -0.5f;
+	
+	second_triangle[3] = -0.5f; 
+	second_triangle[4] = -0.5f; 
+	
+	second_triangle[6] = -0.5f; 
+	second_triangle[7] = 0.5f;
+	
+	for (int i = NUMBER_OF_VERTEX / 2; i < NUMBER_OF_VERTEX; i++) {
+		if (i % 4 == 1) second_triangle[i] = 1.0f;
+		else second_triangle[i] = 0.0f;
 	}	
 }
 
