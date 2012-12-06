@@ -4,25 +4,23 @@ smooth in vec3 fragmentColor;
 out vec3 new_vector;
 
 void main() {
-	float factor = 0.5;
-	float bound_x = 0.0, bound_y = 0.0, bound_z = 0.0;
-	float coord_x = factor, coord_y = factor, coord_z = factor;
-	float power = factor;
-
 	new_vector = fragmentColor;
+	float radius = 0.05;
+	int i;
+	int depth = int(fragmentColor.y / (2.0 * radius));
+	float coord_x, coord_z, coord_y;
+	coord_y = depth * radius * 2.0 + radius;
 
-	for(int i = 0; i < 5; i++) {
-		if (fragmentColor.x < coord_x && fragmentColor.y < coord_y  && fragmentColor.z < coord_z) {
-			new_vector = vec3(0.5, 0.5, 1.0);
-		} else {
-			if (fragmentColor.x > coord_x) bound_x = bound_x + power;
-			else if (fragmentColor.y > coord_y) bound_y = bound_y + power;
-			else if (fragmentColor .z > coord_z)  bound_z = bound_z + power;
-			
-			power = power * factor;
-			coord_x =  bound_x + power;
-			coord_y =  bound_y + power;
-			coord_z =  bound_z + power;
-		}
+
+	for(int i = 0; i < 16 - depth; i++) {
+		coord_x = 1 - (radius + (i + depth) * 2.0 * radius);
+		coord_z =  i * 2.0 * radius  + radius;
+
+		if ((fragmentColor.x - coord_x) * (fragmentColor.x - coord_x) + (fragmentColor.y - coord_y) * (fragmentColor.y - coord_y) + 
+			(fragmentColor.z - coord_z) * (fragmentColor.z - coord_z) <= radius * radius ) {
+			new_vector  = vec3(0.0, 0.0, 0.6);
+		} 
+
 	}
-}
+} 
+

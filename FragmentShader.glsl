@@ -11,13 +11,13 @@ void main() {
 
 	new_vector = fragmentColor;
 
-	for(int i = 0; i < 7; i++) {
+	for(int i = 0; i < 6; i++) {
 		if (fragmentColor.x < coord_x && fragmentColor.y < coord_y  && fragmentColor.z < coord_z) {
 			new_vector = vec3(0.0, 0.0, 0.0);
 		} else {
 			if (fragmentColor.x > coord_x) bound_x = bound_x + power;
 			else if (fragmentColor.y > coord_y) bound_y = bound_y + power;
-			else if (fragmentColor .z > coord_z)  bound_z = bound_z + power;
+			else if (fragmentColor.z > coord_z)  bound_z = bound_z + power;
 			
 			power = power * factor;
 			coord_x =  bound_x + power;

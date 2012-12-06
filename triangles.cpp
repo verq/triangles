@@ -15,6 +15,7 @@
 #define NUMBER_OF_VERTEX 18
 
 GLfloat first_triangle[NUMBER_OF_VERTEX];
+GLfloat small_triangle[NUMBER_OF_VERTEX];
 GLfloat second_triangle[NUMBER_OF_VERTEX];
 
 double scale = 1.0;
@@ -24,7 +25,9 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 int openWindow();
 
 void init_first_triangle();
+void init_small_triangle();
 void init_second_triangle();
+void GLFWCALL keyboard(int key, int action);
 void draw(GLuint program, GLfloat* triangle, GLuint vertexbuffer);
 		
 
@@ -32,14 +35,17 @@ int main() {
 	if (openWindow() == -1) return -1;
 	
 	init_first_triangle();
+	init_small_triangle();
 	init_second_triangle();
-	
-	glfwEnable( GLFW_STICKY_KEYS );
-	
+
+	glfwSetKeyCallback(keyboard);	
+	glfwEnable(GLFW_STICKY_KEYS);
+
 	glClearColor(0.0f, 0.0f, 0.6f, 0.0f);
 	
 	GLuint first_triangleID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl");
 	GLuint second_triangleID = LoadShaders("VertexShader.glsl", "FragmentShader2.glsl");
+	GLuint small_triangleID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl");
 	
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
@@ -55,6 +61,7 @@ int main() {
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)36);
 		
 		draw(first_triangleID, first_triangle, vertexbuffer);
+		draw(small_triangleID, small_triangle, vertexbuffer);
 		draw(second_triangleID, second_triangle, vertexbuffer);
 
 		glDisableVertexAttribArray(0);
@@ -103,6 +110,23 @@ void init_first_triangle() {
 	}	
 }
 
+void init_small_triangle() {
+	for (int i = 0; i < NUMBER_OF_VERTEX / 2; i++) {
+		if (i % 3 == 2) small_triangle[i] = 0.0f;
+	}
+	small_triangle[0] = -0.6f;
+	small_triangle[1] = 0.6f;
+	small_triangle[3] = -0.7f;
+	small_triangle[4] = 0.8f;
+	small_triangle[6] = -0.8f;
+	small_triangle[7] = 0.6;
+
+	for (int i = NUMBER_OF_VERTEX / 2; i < NUMBER_OF_VERTEX; i++) {
+		if (i % 4 == 1) small_triangle[i] = 1.0f;
+		else small_triangle[i] = 0.0f;
+	}
+}
+
 void init_second_triangle() {
 	for (int i = 0; i < NUMBER_OF_VERTEX / 2; i++) {
 		if (i % 3 == 2) second_triangle[i] = 0.0f;
@@ -122,6 +146,11 @@ void init_second_triangle() {
 	}	
 }
 
+void GLFWCALL keyboard(int key, int action) {
+	if(key == 61 && action == GLFW_PRESS) scale = scale + 0.02; //GLFW_KEY_KP_ADD 
+	else if(key == 45 && action == GLFW_PRESS) scale = scale - 0.02; //GLFW_KEY_KP_SUBTRACT
+}
+
 int openWindow() {
 	if (!glfwInit()) {
 		fprintf( stderr, "Failed to initialize GLFW\n" );
@@ -130,7 +159,7 @@ int openWindow() {
 
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
-
+	glewExperimental = GL_TRUE;
 	if(!glfwOpenWindow(800, 600, 0,0,0,0, 32,0, GLFW_WINDOW)) {
 		fprintf(stderr, "Failed to open GLFW window\n");
 		glfwTerminate();
